@@ -1,65 +1,118 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import { MOCK_PRODUCTS } from "@/src/data/mockProducts";
+import { CartItem, Product } from "@/src/types/ecommerce";
+
+export default function Storefront() {
+  const [cart, setCart] = useState<CartItem[]>([]);
+
+  const handleAddToCart = (product: Product) => {
+    const existingItem = cart.find((item) => item.product.id === product.id);
+
+    if (existingItem) {
+      // Case 1: Item is already in the cart, verify we don't exceed stock limits
+      if (existingItem.quantity < product.stock) {
+        const updatedCart = cart.map((item) => {
+          if (item.product.id === product.id) {
+            return { ...item, quantity: item.quantity + 1 };
+          } else {
+            return item;
+          }
+        });
+        console.log("Updating existing item. New cart:", updatedCart);
+        setCart(updatedCart);
+      } else {
+        alert(`Sorry, only ${product.stock} items available in stock!`);
+      }
+    } else {
+      // Case 2: Fresh item, check if it's available before adding
+      if (product.stock > 0) {
+        console.log("Adding completely fresh item to cart.");
+        setCart([...cart, { product, quantity: 1 }]);
+      } else {
+        alert("This item is completely out of stock!");
+      }
+    }
+  };
+
+  const handleRemoveFromCart = (productId: string) => {
+    const currProduct = cart.find(item => item.product.id === productId)
+
+    if (!currProduct) {
+      alert("Product does not exist in cart");
+      return;
+    }
+
+    if(currProduct?.quantity > 1){
+      const updatedCart = cart.map((item) =>
+        item.product.id === productId
+          ? { ...item, quantity: item.quantity - 1 }
+          : item
+      );
+      setCart(updatedCart);
+    }else{
+      const updatedCart = cart.filter(item => item.product.id !== productId);
+      setCart(updatedCart);
+    }
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <main className="p-8 max-w-6xl mx-auto">
+      <h1 className="text-3xl font-bold mb-8">My Storefront</h1>
+      
+      {/* Products Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {MOCK_PRODUCTS.map((product) => (
+          <div key={product.id} className="border p-4 rounded-lg shadow-sm flex flex-col justify-between">
+            <div>
+              <img src={product.image} alt={product.name} className="w-full h-48 object-cover rounded-md" />
+              <h2 className="text-xl font-semibold mt-4">{product.name}</h2>
+              <p className="text-sm text-gray-500 mb-2">{product.category}</p>
+              <p className="text-gray-600 font-bold">${product.price}</p>
+              <p className="text-sm text-gray-400 mb-4">Stock available: {product.stock}</p>
+            </div>
+            
+            <button 
+              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 w-full mt-auto disabled:bg-gray-400"
+              disabled={product.stock === 0}
+              onClick={() => handleAddToCart(product)}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+              {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <hr className="my-12" />
+
+      {/* Cart Section */}
+      <div className="mt-10">
+        <h2 className="text-2xl font-bold mb-4">Your Shopping Cart ({cart.length})</h2>
+        
+        {cart.length === 0 ? (
+          <p className="text-gray-500">Your cart is currently empty.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {cart.map((item) => (
+              <div key={item.product.id} className="flex items-center gap-4 border p-4 rounded-lg bg-black">
+                <img src={item.product.image} alt={item.product.name} className="w-16 h-16 object-cover rounded-md" />
+                <div className="flex-1">
+                  <h3 className="font-semibold">{item.product.name}</h3>
+                  <p className="text-sm text-gray-600">${item.product.price} x {item.quantity}</p>
+                </div>
+                <div className="flex gap-2">
+                  <div className="font-bold text-lg">
+                    ${item.product.price * item.quantity}
+                  </div>
+                  <div className="bold text-red-500 text-2xl mr-2 cursor-pointer" onClick={() => handleRemoveFromCart(item.product.id)}>-</div>
+                  <div className="bold text-green-500 text-2xl cursor-pointer" onClick={() => handleAddToCart(item.product)}>+</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </main>
   );
 }
