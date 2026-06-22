@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { MOCK_PRODUCTS } from "@/src/data/mockProducts";
 import { CartItem, Product } from "@/src/types/ecommerce";
+import ProductCard from "@/src/components/ProductCard";
+import CartItemRow from "@/src/components/CartItemRow";
 
 export default function Storefront() {
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -64,23 +66,11 @@ export default function Storefront() {
       {/* Products Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {MOCK_PRODUCTS.map((product) => (
-          <div key={product.id} className="border p-4 rounded-lg shadow-sm flex flex-col justify-between">
-            <div>
-              <img src={product.image} alt={product.name} className="w-full h-48 object-cover rounded-md" />
-              <h2 className="text-xl font-semibold mt-4">{product.name}</h2>
-              <p className="text-sm text-gray-500 mb-2">{product.category}</p>
-              <p className="text-gray-600 font-bold">${product.price}</p>
-              <p className="text-sm text-gray-400 mb-4">Stock available: {product.stock}</p>
-            </div>
-            
-            <button 
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 w-full mt-auto disabled:bg-gray-400"
-              disabled={product.stock === 0}
-              onClick={() => handleAddToCart(product)}
-            >
-              {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
-            </button>
-          </div>
+          <ProductCard 
+            key={product.id}
+            product={product}
+            onAddToCart={handleAddToCart}
+          />
         ))}
       </div>
 
@@ -95,20 +85,12 @@ export default function Storefront() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {cart.map((item) => (
-              <div key={item.product.id} className="flex items-center gap-4 border p-4 rounded-lg bg-black">
-                <img src={item.product.image} alt={item.product.name} className="w-16 h-16 object-cover rounded-md" />
-                <div className="flex-1">
-                  <h3 className="font-semibold">{item.product.name}</h3>
-                  <p className="text-sm text-gray-600">${item.product.price} x {item.quantity}</p>
-                </div>
-                <div className="flex gap-2">
-                  <div className="font-bold text-lg">
-                    ${item.product.price * item.quantity}
-                  </div>
-                  <div className="bold text-red-500 text-2xl mr-2 cursor-pointer" onClick={() => handleRemoveFromCart(item.product.id)}>-</div>
-                  <div className="bold text-green-500 text-2xl cursor-pointer" onClick={() => handleAddToCart(item.product)}>+</div>
-                </div>
-              </div>
+              <CartItemRow 
+                key={item.product.id}
+                item={item}
+                onIncrease={handleAddToCart}
+                onDecrease={handleRemoveFromCart}
+              />
             ))}
           </div>
         )}

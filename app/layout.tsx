@@ -19,15 +19,47 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en">
+      <body className="bg-gray-50 text-gray-900 antialiased min-h-screen flex flex-col">
+        {/* Global Navbar */}
+        <nav className="bg-slate-900 border-b border-gray-200 sticky top-0 z-50">
+          <div className="max-w-6xl mx-auto px-8 h-16 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                SwiftCart
+              </span>
+              <span className="text-xs bg-black/40 text-white/70 px-2 py-0.5 rounded-full font-medium">
+                Dev Mode
+              </span>
+            </div>
+            
+            {/* Future home of our global cart badge */}
+            <div className="flex items-center gap-4">
+              <div className="relative cursor-pointer bg-gray-100 hover:bg-gray-200 p-2.5 rounded-full transition-colors flex items-center justify-center">
+                🛒
+                {/* Temporary hardcoded badge */}
+                <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                  0
+                </span>
+              </div>
+            </div>
+          </div>
+        </nav>
+
+        {/* Main Content Area */}
+        <div className="flex-1">
+          {children}
+        </div>
+
+        {/* Global Footer */}
+        <footer className="border-t border-gray-200 bg-slate-900 py-6 text-center text-sm text-gray-400 mt-auto">
+          &copy; {new Date().getFullYear()} SwiftCart. Built intentionally.
+        </footer>
+      </body>
     </html>
   );
 }
