@@ -1,100 +1,84 @@
 "use client";
 
-import { useState } from "react";
 import { MOCK_PRODUCTS } from "@/src/data/mockProducts";
-import { CartItem, Product } from "@/src/types/ecommerce";
 import ProductCard from "@/src/components/ProductCard";
 import CartItemRow from "@/src/components/CartItemRow";
+import { useCart } from "@/src/context/CartContext";
 
 export default function Storefront() {
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const { cart, addToCart, removeFromCart } = useCart();
 
-  const handleAddToCart = (product: Product) => {
-    const existingItem = cart.find((item) => item.product.id === product.id);
-
-    if (existingItem) {
-      // Case 1: Item is already in the cart, verify we don't exceed stock limits
-      if (existingItem.quantity < product.stock) {
-        const updatedCart = cart.map((item) => {
-          if (item.product.id === product.id) {
-            return { ...item, quantity: item.quantity + 1 };
-          } else {
-            return item;
-          }
-        });
-        console.log("Updating existing item. New cart:", updatedCart);
-        setCart(updatedCart);
-      } else {
-        alert(`Sorry, only ${product.stock} items available in stock!`);
-      }
-    } else {
-      // Case 2: Fresh item, check if it's available before adding
-      if (product.stock > 0) {
-        console.log("Adding completely fresh item to cart.");
-        setCart([...cart, { product, quantity: 1 }]);
-      } else {
-        alert("This item is completely out of stock!");
-      }
-    }
-  };
-
-  const handleRemoveFromCart = (productId: string) => {
-    const currProduct = cart.find(item => item.product.id === productId)
-
-    if (!currProduct) {
-      alert("Product does not exist in cart");
-      return;
-    }
-
-    if(currProduct?.quantity > 1){
-      const updatedCart = cart.map((item) =>
-        item.product.id === productId
-          ? { ...item, quantity: item.quantity - 1 }
-          : item
-      );
-      setCart(updatedCart);
-    }else{
-      const updatedCart = cart.filter(item => item.product.id !== productId);
-      setCart(updatedCart);
-    }
-  }
+  const cartTotal = cart.reduce(
+    (sum, item) => sum + item.product.price * item.quantity,
+    0
+  );
+  const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <main className="p-8 max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8">My Storefront</h1>
-      
-      {/* Products Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {MOCK_PRODUCTS.map((product) => (
-          <ProductCard 
-            key={product.id}
-            product={product}
-            onAddToCart={handleAddToCart}
-          />
-        ))}
-      </div>
+    <main className="mx-auto max-w-5xl px-6 py-16">
+      <header className="mb-16 max-w-md">
+        <p className="mb-3 text-[11px] tracking-widest uppercase text-subtle">
+          Curated essentials
+        </p>
+        <h1 className="text-3xl font-medium tracking-tight sm:text-4xl">
+          Shop the collection
+        </h1>
+        <p className="mt-4 text-sm leading-relaxed text-muted">
+          Thoughtfully selected pieces for everyday use. Simple, durable, and
+          designed to last.
+        </p>
+      </header>
 
-      <hr className="my-12" />
+      <section aria-label="Products">
+        <div className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+          {MOCK_PRODUCTS.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              onAddToCart={addToCart}
+            />
+          ))}
+        </div>
+      </section>
 
-      {/* Cart Section */}
-      <div className="mt-10">
-        <h2 className="text-2xl font-bold mb-4">Your Shopping Cart ({cart.length})</h2>
-        
+      <section id="cart" aria-label="Shopping cart" className="mt-24 pt-16 border-t border-border">
+        <div className="mb-8 flex items-end justify-between">
+          <div>
+            <p className="mb-2 text-[11px] tracking-widest uppercase text-subtle">
+              Your bag
+            </p>
+            <h2 className="text-xl font-medium tracking-tight">
+              {itemCount === 0 ? "Cart" : `${itemCount} item${itemCount === 1 ? "" : "s"}`}
+            </h2>
+          </div>
+          {cart.length > 0 && (
+            <p className="text-sm tabular-nums text-muted">
+              Total{" "}
+              <span className="font-medium text-foreground">${cartTotal}</span>
+            </p>
+          )}
+        </div>
+
         {cart.length === 0 ? (
-          <p className="text-gray-500">Your cart is currently empty.</p>
+          <div className="rounded-sm border border-dashed border-border py-16 text-center">
+            <p className="text-sm text-muted">Your cart is empty.</p>
+            <p className="mt-1 text-xs text-subtle">
+              Browse the collection above to get started.
+            </p>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="rounded-sm border border-border bg-surface px-5">
             {cart.map((item) => (
-              <CartItemRow 
+              <CartItemRow
                 key={item.product.id}
                 item={item}
-                onIncrease={handleAddToCart}
-                onDecrease={handleRemoveFromCart}
+                onIncrease={addToCart}
+                onDecrease={removeFromCart}
               />
             ))}
           </div>
         )}
-      </div>
+      </section>
     </main>
   );
 }

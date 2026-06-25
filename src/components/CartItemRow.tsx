@@ -7,34 +7,45 @@ interface CartItemRowProps {
 }
 
 export default function CartItemRow({ item, onIncrease, onDecrease }: CartItemRowProps) {
+  const lineTotal = item.product.price * item.quantity;
+
   return (
-    <div className="flex items-center gap-4 border p-4 rounded-lg bg-gray-50 justify-between">
-      <div className="flex items-center gap-4">
-        <img src={item.product.image} alt={item.product.name} className="w-16 h-16 object-cover rounded-md" />
-        <div className="flex-1">
-          <h3 className="font-semibold">{item.product.name}</h3>
-          <p className="text-sm text-gray-600">${item.product.price} x {item.quantity}</p>
-        </div>
+    <div className="flex items-center gap-5 border-b border-border py-5 last:border-b-0">
+      <img
+        src={item.product.image}
+        alt={item.product.name}
+        className="h-16 w-16 shrink-0 rounded-sm object-cover"
+      />
+
+      <div className="min-w-0 flex-1">
+        <h3 className="truncate text-sm font-medium">{item.product.name}</h3>
+        <p className="mt-0.5 text-xs text-muted">
+          ${item.product.price} each
+        </p>
       </div>
-      
-      <div className="flex items-center gap-4">
-        <div className="font-bold text-lg">
-          ${item.product.price * item.quantity}
-        </div>
-        <div className="flex gap-2">
-          <button 
-            className="font-bold text-red-500 text-2xl mr-2 cursor-pointer bg-transparent border-none" 
+
+      <div className="flex items-center gap-3">
+        <div className="flex items-center rounded-sm border border-border">
+          <button
+            type="button"
+            aria-label="Decrease quantity"
             onClick={() => onDecrease(item.product.id)}
+            className="flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-foreground"
           >
-            -
+            −
           </button>
-          <button 
-            className="font-bold text-green-500 text-2xl cursor-pointer bg-transparent border-none" 
+          <span className="w-8 text-center text-xs tabular-nums">{item.quantity}</span>
+          <button
+            type="button"
+            aria-label="Increase quantity"
             onClick={() => onIncrease(item.product)}
+            className="flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-foreground"
           >
             +
           </button>
         </div>
+
+        <p className="w-16 text-right text-sm tabular-nums">${lineTotal}</p>
       </div>
     </div>
   );
